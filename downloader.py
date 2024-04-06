@@ -6,11 +6,15 @@ from tkinter.filedialog import askdirectory
 global title
 title = "%(title)s - %(uploader)s"
 
+global statusText
+statusText = "Idle"
+
 
 class titleToplevel(ctk.CTkToplevel):
     def __init__(self, entry):
         super().__init__()
         global title
+        global statusText
         self.title("Titolo Avanzato")
         self.geometry("500x140")
         self.resizable(False, False)
@@ -95,7 +99,9 @@ class Main(ctk.CTk):
         self.geometry("900x675")
         self.resizable(False, False)
 
-        
+        global statusText
+        self.statusLabel = ctk.CTkLabel(self, text=f"Stato: {statusText}", font=("Noto Sans", 12))
+        self.statusLabel.place(x=450, y=650, anchor="center")
 
         self.urlInput = ctk.CTkEntry(self, width=500, height=30, corner_radius=64, font=("Noto Sans", 13), placeholder_text="URL")
         self.urlInput.place(x=115, y=168.75, anchor="w")
@@ -141,6 +147,8 @@ class Main(ctk.CTk):
 
         def main_video_ops():
             video_url = self.urlInput.get()
+            statusText = f"Errore verifica URL ({video_url})"
+            self.statusLabel.configure(text=f"Stato: {statusText}")
             ydl_opts = {
                 'quiet': True,
                 'no_warnings': True,
@@ -168,6 +176,8 @@ class Main(ctk.CTk):
 
                 # Corrected lambda function to pass the selected extension to update_resolutions
                 self.extensionDropdown.configure(command=lambda _: update_resolutions(ext_resolutions, self.extensionDropdown.get()))
+                statusText = f"Verifica URL completata! ({video_url})"
+                self.statusLabel.configure(text=f"Stato: {statusText}")
 
         def update_resolutions(ext_resolutions, selected_ext):
             if selected_ext in ext_resolutions:
@@ -182,6 +192,8 @@ class Main(ctk.CTk):
         self.downloadButton = ctk.CTkButton(self.infoFrame, corner_radius=50, text="Scarica", font=("Noto Sans", 20), width=150, height=75)
         self.downloadButton.place(x=405, y=350, anchor="center")
         def download_video():
+            global title
+            title = self.titleInput.get()
             video_url = self.urlInput.get()
             selected_ext = self.extensionDropdown.get()
             selected_res = self.resolutionDropdown.get()
@@ -202,7 +214,11 @@ class Main(ctk.CTk):
                 'outtmpl': download_dir + "/" + title + ".%(ext)s",
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                statusText = f"Errore nel download ({video_url})"
+                self.statusLabel.configure(text=f"Stato: {statusText}")
                 ydl.download([video_url])
+            statusText = f"Download completato! ({video_url})"
+            self.statusLabel.configure(text=f"Stato: {statusText}")
         self.downloadButton.configure(command=download_video)
 
 
